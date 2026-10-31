@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VoiceClone — Is this voice real or AI?</title>
+  <meta name="description" content="In-browser AI voice cloning and deepfake audio detector. 100% private: audio is analyzed directly in your browser using wav2vec2 neural models and never uploaded.">
+  <meta name="keywords" content="voice clone detector, deepfake audio detection, AI voice scam protection, wav2vec2, browser audio classifier">
+  <meta name="author" content="VoiceClone Project">
+
+  <!-- Open Graph / Social Sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="VoiceClone — Is this voice real or AI?">
+  <meta property="og:description" content="Check if a recorded voice is authentic human or an AI clone. Runs 100% client-side in your browser. Zero uploads.">
+  <meta property="og:url" content="https://endearing-pavlova-75c4ac.netlify.app/">
+  <meta property="og:image" content="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%230a0b14'/><circle cx='50' cy='50' r='35' fill='none' stroke='%234cc9ff' stroke-width='8'/><path d='M30 50h40M40 35v30M60 35v30' stroke='%239b5cff' stroke-width='6'/></svg>">
+  <link rel="canonical" href="https://endearing-pavlova-75c4ac.netlify.app/">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="VoiceClone — Is this voice real or AI?">
+  <meta name="twitter:description" content="Protect against AI voice cloning scams. 100% client-side browser speech verification.">
+
+  <!-- Favicon (Inline SVG) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0b14'/><path d='M6 16h3M11 10v12M16 6v20M21 11v10M26 16h2' stroke='%234cc9ff' stroke-width='2.8' stroke-linecap='round'/></svg>">
+
+  <!-- Google Fonts Preconnect -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Site Header & Sticky Navbar -->
+  <header class="site-header" role="banner">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo" aria-label="VoiceClone Home">
+        <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+        <span>VoiceClone</span>
+        <span class="brand-tagline-small">Zero-Upload</span>
+      </a>
+
+      <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <nav role="navigation">
+        <ul id="nav-links" class="nav-links">
+          <li><a href="index.html" class="nav-link active" aria-current="page">Detector</a></li>
+          <li><a href="how-it-works.html" class="nav-link">How It Works</a></li>
+          <li><a href="scam-safety.html" class="nav-link">Scam Safety</a></li>
+          <li><a href="about.html" class="nav-link">About &amp; Limitations</a></li>
+          <li><a href="selftest.html" class="nav-link">System Test</a></li>
+          <li>
+            <span class="nav-badge-pill" title="Audio processing runs exclusively inside your browser memory.">
+              Client-Side Only
+            </span>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content" class="container" role="main">
+    
+    <!-- Hero Section -->
+    <section class="hero-section" aria-labelledby="hero-title">
+      <div class="privacy-banner-pill">
+        <span class="privacy-shield-icon" aria-hidden="true">🔒</span>
+        <span>100% Client-Side Private • Audio is analyzed in your browser and never leaves your device</span>
+      </div>
+
+      <h1 id="hero-title" class="hero-title">
+        Is this voice <span class="gradient-text">real or AI?</span>
+      </h1>
+      <p class="hero-subtitle">
+        Protect yourself against AI voice cloning scams. Record or upload any voice sample to inspect acoustic micro-artifacts, harmonic phase consistency, and neural vocoder patterns.
+      </p>
+
+      <!-- Morphing Wave Canvas Demonstration -->
+      <div class="hero-canvas-wrapper" aria-label="Simulated comparison of natural human vocal wave vs quantized synthetic wave">
+        <span id="hero-wave-badge" class="hero-wave-badge badge-human">
+          Waveform Simulation: Organic Human Resonance
+        </span>
+        <canvas id="hero-canvas" height="95"></canvas>
+      </div>
+    </section>
+
+    <!-- Mode Selector Tabs -->
+    <div class="tabs-navigation-wrapper">
+      <div class="tabs-nav" role="tablist" aria-label="Detection Modes">
+        <button id="tab-btn-detect" class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-detect" data-tab="detect">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          </svg>
+          <span>Detect a Voice</span>
+        </button>
+        <button id="tab-btn-lab" class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-lab" data-tab="lab">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+            <polyline points="2 17 12 22 22 17"/>
+            <polyline points="2 12 12 17 22 12"/>
+          </svg>
+          <span>Test Lab (Side-by-Side)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB A: DETECT A VOICE -->
+    <div id="tab-detect" class="tab-panel active" role="tabpanel" aria-labelledby="tab-btn-detect">
+      <div class="glass-card">
+        
+        <!-- Live Neural Engine Status Badge -->
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem;">
+          <div id="neural-model-badge" class="model-status-pill loading" aria-live="polite">
+            <span class="status-dot"></span>
+            <span id="model-status-label">Initializing Neural Engine...</span>
+            <button id="model-retry-btn" class="badge-action-btn" hidden type="button">Retry Download</button>
+          </div>
+          <span style="font-size: 0.78rem; color: var(--text-dim);">WASM On-Device Pipeline</span>
+        </div>
+
+        <!-- 1-Click Hackathon Demo Bar -->
+        <div class="demo-samples-bar" aria-label="Quick Demo Voice Samples">
+          <span class="demo-label">⚡ 1-Click Hackathon Demo:</span>
+          <button id="btn-demo-human" class="btn-demo-sample" type="button" title="Load genuine human voice sample">
+            <span>👤 Try Sample Human Voice</span>
+          </button>
+          <button id="btn-demo-ai" class="btn-demo-sample" type="button" title="Load synthetic AI voice sample">
+            <span>🤖 Try Sample AI Voice</span>
+          </button>
+        </div>
+
+        <!-- Capture Controls (Record or Upload) -->
+        <div id="detect-capture-controls" class="capture-container" style="margin-top: 1.25rem;">
+          
+          <!-- Microphone Recording Column -->
+          <div class="capture-column">
+            <h2 class="capture-column-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              </svg>
+              <span>Record Live Microphone</span>
+            </h2>
+            <p class="capture-column-desc">
+              Speak or play audio into your microphone. Recommended length: <strong>5 to 15 seconds</strong> (max 60s).
+            </p>
+
+            <button id="detect-record-btn" class="mic-record-btn" type="button" aria-label="Start recording microphone">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <circle cx="12" cy="12" r="7"/>
+              </svg>
+            </button>
+
+            <button id="detect-stop-btn" class="mic-stop-btn" type="button" hidden aria-label="Stop recording">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <rect x="6" y="6" width="12" height="12"/>
+              </svg>
+              <span>Stop Recording</span>
+            </button>
+
+            <!-- Live Telemetry -->
+            <div class="recording-telemetry">
+              <div id="detect-timer" class="timer-box" aria-live="off">00:00</div>
+              <div class="level-meter-track" title="Live audio input level">
+                <div id="detect-meter-fill" class="level-meter-fill"></div>
+              </div>
+            </div>
+
+            <p class="dsp-info-tooltip" title="Hardware echo cancellation, noise suppression, and auto gain control are bypassed so delicate synthetic vocal artifacts are not erased by your operating system.">
+              ℹ️ Raw capture active (Hardware DSP bypassed for accuracy)
+            </p>
+          </div>
+
+          <!-- File Upload Column -->
+          <div class="capture-column">
+            <h2 class="capture-column-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <span>Upload Audio File</span>
+            </h2>
+            <p class="capture-column-desc">
+              Drop recorded voicemails, WhatsApp audio, phone calls, or audio files. Max 20 MB.
+            </p>
+
+            <div id="detect-drop-zone" class="drop-zone" tabindex="0" role="button" aria-label="File upload drop area">
+              <span class="drop-icon" aria-hidden="true">📁</span>
+              <p>Drag &amp; drop audio file here</p>
+              <span class="btn-upload-browse">Browse Files</span>
+              <p class="dsp-info-tooltip">Supports WAV, MP3, M4A, MP4 (WhatsApp), OGG, Opus, WebM</p>
+            </div>
+            <input type="file" id="detect-file-input" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.opus,.webm,.flac,.mp4" hidden>
+          </div>
+
+        </div>
+
+        <!-- Player Section (Shown after capture/upload) -->
+        <div id="detect-player-section" class="player-section" hidden>
+          <div class="player-header">
+            <h3>Captured Voice Sample</h3>
+            <span id="detect-duration-label" class="status-pill ready">0.0s</span>
+          </div>
+
+          <audio id="detect-audio-player" class="audio-player-control" controls></audio>
+
+          <!-- Dynamic Quality Warnings Box -->
+          <div id="detect-quality-warnings" class="quality-warnings-banner" hidden role="alert"></div>
+
+          <div class="player-action-row">
+            <div class="btn-group-secondary">
+              <button id="detect-rerecord-btn" class="btn-secondary" type="button">
+                <span>🔄 Record Again</span>
+              </button>
+              <button id="detect-delete-btn" class="btn-secondary btn-danger" type="button">
+                <span>🗑️ Remove Sample</span>
+              </button>
+            </div>
+
+            <button id="detect-analyze-btn" class="btn-primary-analyze" type="button">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polygon points="5 3 19 12 5 21 5 3"/>
+              </svg>
+              <span>Analyze Voice Authenticity</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Model Download / Inference Progress Bar -->
+        <div id="detect-model-progress" class="model-progress-box" hidden aria-live="polite">
+          <div class="model-progress-meta">
+            <span id="detect-progress-text">Preparing neural acoustic engine...</span>
+            <span class="model-cache-note">Cached in browser after first run</span>
+          </div>
+          <div class="progress-track">
+            <div id="detect-progress-fill" class="progress-fill"></div>
+          </div>
+          <p class="dsp-info-tooltip">Running on-device via WebAssembly / WebGPU. Zero audio data is uploaded.</p>
+        </div>
+
+        <!-- RESULTS SECTION -->
+        <section id="detect-results-section" class="results-container" hidden aria-live="polite" aria-labelledby="verdict-title">
+          
+          <!-- Verdict Card -->
+          <div id="verdict-card" class="verdict-card verdict-green">
+            <div>
+              <span class="verdict-pill">Acoustic Assessment</span>
+              <h2 id="verdict-title" class="verdict-title">Likely Real Human Voice</h2>
+              <p id="verdict-tagline" class="verdict-tagline">
+                Natural speech formants and vocal tract variations detected.
+              </p>
+            </div>
+            <div class="verdict-gauge-wrapper">
+              <canvas id="verdict-gauge-canvas" width="160" height="160"></canvas>
+            </div>
+          </div>
+
+          <!-- Quality Metrics Bar -->
+          <div class="metrics-grid">
+            <div class="metric-card">
+              <div class="metric-label">Duration</div>
+              <div id="metric-duration" class="metric-value">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">RMS Loudness</div>
+              <div id="metric-rms" class="metric-value">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Clipping Rate</div>
+              <div id="metric-clipping" class="metric-value">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Estimated SNR</div>
+              <div id="metric-snr" class="metric-value">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Suspicious Segments</div>
+              <div id="metric-windows" class="metric-value">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">Analysis Pipeline</div>
+              <div id="metric-engine" class="metric-value" style="font-size: 0.95rem;">wav2vec2</div>
+            </div>
+          </div>
+
+          <!-- Layer 2: Acoustic Signal Evidence Report -->
+          <div class="acoustic-evidence-card">
+            <div class="acoustic-evidence-title-group">
+              <h3 class="acoustic-evidence-title">
+                <span>🔬 Acoustic Signal Evidence (Physical Signal Context)</span>
+              </h3>
+              <p class="acoustic-evidence-subtitle">
+                Physical acoustic measurements across the recording. Note: These are secondary contextual signals that can be altered by recording devices, room reverberation, or lossy audio codecs (such as WhatsApp).
+              </p>
+            </div>
+            <div class="evidence-grid">
+              <div class="evidence-item">
+                <div class="evidence-item-label">Pause Noise Floor</div>
+                <div id="ev-noise-floor" class="evidence-item-value">— dBFS</div>
+                <div class="evidence-item-note">Quiet pause background energy</div>
+              </div>
+              <div class="evidence-item">
+                <div class="evidence-item-label">Pitch Dynamic Range</div>
+                <div id="ev-pitch-std" class="evidence-item-value">±— semitones</div>
+                <div class="evidence-item-note" id="ev-pitch-median">Median: — Hz</div>
+              </div>
+              <div class="evidence-item">
+                <div class="evidence-item-label">Digital Zero Frames</div>
+                <div id="ev-digital-zero" class="evidence-item-value">—%</div>
+                <div class="evidence-item-note">Exact artificial silence gaps</div>
+              </div>
+              <div class="evidence-item">
+                <div class="evidence-item-label">6–8 kHz High Energy</div>
+                <div id="ev-hf-energy" class="evidence-item-value">— dBFS</div>
+                <div id="ev-bandwidth" class="evidence-item-note">Bandwidth estimate</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Visualizations: Waveform & Spectrogram -->
+          <div class="visualizations-grid">
+            <div class="canvas-card">
+              <div class="canvas-card-title">
+                <span>Waveform Amplitude Envelope</span>
+                <span class="text-dim">Time Domain</span>
+              </div>
+              <canvas id="result-waveform-canvas" class="visual-canvas"></canvas>
+            </div>
+            <div class="canvas-card">
+              <div class="canvas-card-title">
+                <span>FFT Spectrogram</span>
+                <span class="text-dim">0 - 8,000 Hz</span>
+              </div>
+              <canvas id="result-spectrogram-canvas" class="visual-canvas"></canvas>
+            </div>
+          </div>
+
+          <!-- Timeline Bar Chart (4s Windows) -->
+          <div class="timeline-card">
+            <h3 class="timeline-title">Window Timeline Scan (4-Second Windows)</h3>
+            <p class="timeline-subtitle">
+              Audio is scanned in overlapping segments to detect short synthetic inserts or spliced words.
+            </p>
+            <div id="result-timeline-container"></div>
+          </div>
+
+          <!-- Plain-Language Explanations Accordion -->
+          <div class="why-accordion-card">
+            <h3 style="margin-bottom: 1rem;">Why this result?</h3>
+            <div id="result-why-accordion"></div>
+          </div>
+
+          <!-- Always-Visible Legal Disclaimer -->
+          <div class="disclaimer-box" role="note">
+            <span class="disclaimer-icon" aria-hidden="true">⚠️</span>
+            <p>
+              <strong>Probability Estimate Notice:</strong> This is a probability estimate from an in-browser neural model, not definitive legal proof. Do not use it as your only basis for a legal or financial decision. Voice compression, phone lines, and recording gear can alter acoustic cues.
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="results-actions-row">
+            <div class="results-actions-left">
+              <button id="btn-copy-report" class="btn-secondary" type="button">
+                <span>📋 Copy Report (Text)</span>
+              </button>
+              <button id="btn-download-json" class="btn-secondary" type="button">
+                <span>💾 Download Result (JSON)</span>
+              </button>
+            </div>
+            <button id="btn-analyze-another" class="btn-primary-analyze" type="button" style="padding: 0.65rem 1.4rem; font-size: 0.9rem;">
+              <span>➕ Analyze Another Voice</span>
+            </button>
+          </div>
+
+        </section>
+
+      </div>
+    </div>
+
+    <!-- TAB B: TEST LAB -->
+    <div id="tab-lab" class="tab-panel" role="tabpanel" aria-labelledby="tab-btn-lab" hidden>
+      <div class="glass-card">
+        
+        <div class="lab-header">
+          <h2 class="lab-title">Test Lab Benchmark</h2>
+          <p class="lab-subtitle">
+            Provide a genuine human voice and an AI-generated voice side by side. See how the detector scores both, inspect detector accuracy, and build confidence in the system.
+          </p>
+        </div>
+
+        <!-- Session Scoreboard (Stored in localStorage) -->
+        <div class="scoreboard-card" aria-label="Session Scoreboard">
+          <div class="scoreboard-title-group">
+            <h3>Session Reliability Scoreboard</h3>
+            <p>Evaluates detector decisions against your ground-truth labels.</p>
+          </div>
+
+          <div class="scoreboard-stats">
+            <div class="stat-item">
+              <div id="sb-correct" class="stat-num">0</div>
+              <div class="stat-label">Correct Calls</div>
+            </div>
+            <div class="stat-item">
+              <div id="sb-total" class="stat-num">0</div>
+              <div class="stat-label">Total Tests</div>
+            </div>
+            <div class="stat-item">
+              <div id="sb-accuracy" class="stat-num highlight">—%</div>
+              <div class="stat-label">Session Accuracy</div>
+            </div>
+          </div>
+
+          <button id="reset-scoreboard-btn" class="btn-secondary" type="button" title="Clear session scoreboard history">
+            <span>Reset Scoreboard</span>
+          </button>
+        </div>
+
+        <!-- Side-by-Side Cards (Human vs AI) -->
+        <div class="lab-cards-grid">
+          
+          <!-- Card 1: Human Sample -->
+          <div class="lab-sample-card human-slot">
+            <div class="lab-card-header">
+              <h3>Sample A: Real Human Voice</h3>
+              <span id="lab-human-status-pill" class="status-pill empty">Waiting for Sample</span>
+            </div>
+            <p class="capture-column-desc">
+              Record yourself or upload a voice recording known to be from an authentic person.
+            </p>
+
+            <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+              <button id="lab-human-record-btn" class="btn-secondary" type="button">
+                <span>🎙️ Record Mic</span>
+              </button>
+              <button id="lab-human-stop-btn" class="mic-stop-btn" type="button" hidden>
+                <span>⏹️ Stop</span>
+              </button>
+              <label class="btn-secondary" style="cursor: pointer;">
+                <span>📁 Upload File</span>
+                <input type="file" id="lab-human-file-input" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.opus,.webm,.flac,.mp4" hidden>
+              </label>
+              <span id="lab-human-timer" style="align-self: center; font-size: 0.9rem; color: var(--accent-cyan);"></span>
+            </div>
+
+            <!-- Player Box -->
+            <div id="lab-human-player-box" class="player-section" style="margin-top: 0.5rem; padding: 1rem;" hidden>
+              <audio id="lab-human-audio" controls style="width: 100%; height: 36px; margin-bottom: 0.5rem;"></audio>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="lab-human-duration" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+                <button id="lab-human-delete-btn" class="btn-secondary btn-danger" type="button" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            <!-- Evaluation Banner -->
+            <div id="lab-human-evaluation" class="lab-card-evaluation"></div>
+          </div>
+
+          <!-- Card 2: AI Sample -->
+          <div class="lab-sample-card ai-slot">
+            <div class="lab-card-header">
+              <h3>Sample B: AI Synthetic Voice</h3>
+              <span id="lab-ai-status-pill" class="status-pill empty">Waiting for Sample</span>
+            </div>
+
+            <!-- Practical Tip -->
+            <div class="lab-tip-box">
+              💡 <strong>Accuracy Tip:</strong> For AI voices, upload the audio file directly. Playing AI audio through phone or laptop speakers adds room reverberation that weakens synthetic cues.
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-bottom: 1rem; flex-wrap: wrap;">
+              <button id="lab-ai-record-btn" class="btn-secondary" type="button">
+                <span>🎙️ Record Mic</span>
+              </button>
+              <button id="lab-ai-stop-btn" class="mic-stop-btn" type="button" hidden>
+                <span>⏹️ Stop</span>
+              </button>
+              <label class="btn-secondary" style="cursor: pointer;">
+                <span>📁 Upload File</span>
+                <input type="file" id="lab-ai-file-input" accept="audio/*,.wav,.mp3,.m4a,.aac,.ogg,.opus,.webm,.flac,.mp4" hidden>
+              </label>
+              <span id="lab-ai-timer" style="align-self: center; font-size: 0.9rem; color: var(--accent-cyan);"></span>
+            </div>
+
+            <!-- Player Box -->
+            <div id="lab-ai-player-box" class="player-section" style="margin-top: 0.5rem; padding: 1rem;" hidden>
+              <audio id="lab-ai-audio" controls style="width: 100%; height: 36px; margin-bottom: 0.5rem;"></audio>
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="lab-ai-duration" style="font-size: 0.8rem; color: var(--text-muted);"></span>
+                <button id="lab-ai-delete-btn" class="btn-secondary btn-danger" type="button" style="padding: 0.25rem 0.6rem; font-size: 0.75rem;">
+                  Delete
+                </button>
+              </div>
+            </div>
+
+            <!-- Evaluation Banner -->
+            <div id="lab-ai-evaluation" class="lab-card-evaluation"></div>
+          </div>
+
+        </div>
+
+        <!-- Analyze Both Button -->
+        <div class="lab-analyze-actions">
+          <button id="lab-analyze-both-btn" class="btn-primary-analyze" type="button" disabled>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            <span>Analyze Both Samples &amp; Score</span>
+          </button>
+        </div>
+
+        <!-- Lab Model Download Progress -->
+        <div id="lab-model-progress" class="model-progress-box" hidden aria-live="polite">
+          <div class="model-progress-meta">
+            <span id="lab-progress-text">Processing samples in browser...</span>
+          </div>
+          <div class="progress-track">
+            <div id="lab-progress-fill" class="progress-fill"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Friendly Error Modal -->
+  <div id="friendly-error-modal" class="modal-overlay" hidden style="display: none;" role="dialog" aria-modal="true" aria-labelledby="modal-error-title">
+    <div class="modal-content">
+      <div class="modal-icon" aria-hidden="true">⚠️</div>
+      <h3 id="modal-error-title" class="modal-title">Action Needed</h3>
+      <p id="friendly-error-message" class="modal-message"></p>
+      <button id="friendly-error-close" class="btn-secondary" type="button" style="margin: 0 auto;">
+        <span>Got it</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Site Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h4>VoiceClone</h4>
+          <p>
+            An open educational and investigative tool for evaluating vocal authenticity against rising AI voice-cloning fraud and deepfake impersonation scams.
+          </p>
+          <p style="margin-top: 0.75rem; color: var(--accent-cyan); font-size: 0.8rem;">
+            🔒 100% Client-Side Privacy: Your voice never leaves your device.
+          </p>
+        </div>
+
+        <div>
+          <h5 style="color: #ffffff; margin-bottom: 0.75rem;">Exploration</h5>
+          <ul class="footer-links-list">
+            <li><a href="index.html">Detector</a></li>
+            <li><a href="how-it-works.html">How It Works</a></li>
+            <li><a href="scam-safety.html">Scam Safety Checklist</a></li>
+            <li><a href="about.html">Honest Limitations</a></li>
+            <li><a href="selftest.html">System Diagnostics</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 style="color: #ffffff; margin-bottom: 0.75rem;">Emergency Help</h5>
+          <ul class="footer-links-list">
+            <li><a href="scam-safety.html#helplines">Cybercrime Helplines</a></li>
+            <li><a href="https://cybercrime.gov.in" target="_blank" rel="noopener">India 1930 Portal</a></li>
+            <li><a href="https://www.ic3.gov" target="_blank" rel="noopener">US FBI IC3</a></li>
+            <li><a href="https://www.actionfraud.police.uk" target="_blank" rel="noopener">UK Action Fraud</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-disclaimer-bottom">
+        <p>
+          <strong>Legal Disclaimer:</strong> VoiceClone is a client-side probabilistic detection tool intended for educational and preliminary screening purposes. Deepfake speech detection is an adversarial research field with imperfect accuracy. Never make financial, legal, or emergency decisions based solely on automated audio analysis.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Bootstrap -->
+  <script type="module">
+    import { initApp } from './js/ui.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      initApp();
+
+      // Register Service Worker for offline/Wi-Fi resilience
+      if ('serviceWorker' in navigator && (window.location.protocol === 'https:' || window.location.hostname === 'localhost')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('./sw.js').catch((err) => {
+            console.warn('ServiceWorker registration note:', err);
+          });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

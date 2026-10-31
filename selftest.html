@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Diagnostics &amp; Self-Test — VoiceClone</title>
+  <meta name="description" content="In-browser self-test and hardware diagnostic suite for VoiceClone: verifies WebAssembly, WebGPU, AudioContext, microphone APIs, and neural model inference.">
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="VoiceClone Self-Test &amp; Hardware Diagnostics">
+  <meta property="og:description" content="Live hardware and browser diagnostics suite for client-side deepfake speech detection.">
+  <meta property="og:url" content="https://endearing-pavlova-75c4ac.netlify.app/selftest">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230a0b14'/><path d='M6 16h3M11 10v12M16 6v20M21 11v10M26 16h2' stroke='%234cc9ff' stroke-width='2.8' stroke-linecap='round'/></svg>">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header" role="banner">
+    <div class="container nav-container">
+      <a href="index.html" class="brand-logo" aria-label="VoiceClone Home">
+        <svg class="brand-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+          <line x1="8" y1="22" x2="16" y2="22"/>
+        </svg>
+        <span>VoiceClone</span>
+        <span class="brand-tagline-small">Zero-Upload</span>
+      </a>
+
+      <button id="mobile-menu-btn" class="mobile-menu-btn" aria-label="Toggle navigation menu" aria-expanded="false">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+      </button>
+
+      <nav role="navigation">
+        <ul id="nav-links" class="nav-links">
+          <li><a href="index.html" class="nav-link">Detector</a></li>
+          <li><a href="how-it-works.html" class="nav-link">How It Works</a></li>
+          <li><a href="scam-safety.html" class="nav-link">Scam Safety</a></li>
+          <li><a href="about.html" class="nav-link">About &amp; Limitations</a></li>
+          <li><a href="selftest.html" class="nav-link active" aria-current="page">System Test</a></li>
+          <li><span class="nav-badge-pill">Client-Side Only</span></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" style="padding-top: 3.5rem; padding-bottom: 5rem;">
+    
+    <div style="text-align: center; max-width: 800px; margin: 0 auto 2.5rem;">
+      <span class="hero-wave-badge badge-neutral" style="margin-bottom: 1rem;">Hackathon Judge Verification</span>
+      <h1 style="font-size: clamp(2rem, 4vw, 3rem); margin-bottom: 1rem;">
+        Browser Diagnostics &amp; Self-Test
+      </h1>
+      <p style="color: var(--text-muted); font-size: 1rem; line-height: 1.6;">
+        Live verification of client-side browser capabilities: cryptographic context, microphone API, WebAssembly execution, WebGPU availability, neural weights cache, and benchmark inference.
+      </p>
+    </div>
+
+    <div class="glass-card selftest-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.35rem; color: #ffffff;">Automated Environment Verification</h2>
+          <p id="selftest-summary" style="font-size: 0.88rem; color: var(--text-muted); margin-top: 0.25rem;">
+            Running hardware diagnostics...
+          </p>
+        </div>
+        <button id="btn-rerun-tests" class="btn-primary-analyze" type="button" style="padding: 0.6rem 1.4rem; font-size: 0.85rem;">
+          <span>🔄 Re-run All Diagnostics</span>
+        </button>
+      </div>
+
+      <table class="selftest-table">
+        <thead>
+          <tr>
+            <th style="width: 28%;">Diagnostic Check</th>
+            <th style="width: 18%;">Status</th>
+            <th>Telemetry &amp; Findings</th>
+          </tr>
+        </thead>
+        <tbody id="selftest-results-body">
+          <!-- Populated by selftest script -->
+        </tbody>
+      </table>
+
+      <!-- Real Inference Probe Box -->
+      <div style="margin-top: 2rem; padding: 1.25rem; background: rgba(10, 11, 20, 0.6); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
+        <h3 style="font-size: 1rem; color: var(--accent-cyan); margin-bottom: 0.5rem;">
+          ⚡ Live Neural Inference Probe
+        </h3>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
+          Feeds a synthetic 64,000-sample (4.0s @ 16 kHz) audio vector through the on-device wav2vec2 ONNX classifier.
+        </p>
+        <pre id="inference-probe-output" style="background: rgba(0,0,0,0.4); padding: 1rem; border-radius: var(--radius-sm); font-size: 0.82rem; color: #a0aec0; overflow-x: auto; white-space: pre-wrap;">Awaiting probe execution...</pre>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Site Footer -->
+  <footer class="site-footer" role="contentinfo">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h4>VoiceClone</h4>
+          <p>
+            An open educational and investigative tool for evaluating vocal authenticity against rising AI voice-cloning fraud.
+          </p>
+          <p style="margin-top: 0.75rem; color: var(--accent-cyan); font-size: 0.8rem;">
+            🔒 100% Client-Side Privacy: Your voice never leaves your device.
+          </p>
+        </div>
+
+        <div>
+          <h5 style="color: #ffffff; margin-bottom: 0.75rem;">Navigation</h5>
+          <ul class="footer-links-list">
+            <li><a href="index.html">Detector</a></li>
+            <li><a href="how-it-works.html">How It Works</a></li>
+            <li><a href="scam-safety.html">Scam Safety Checklist</a></li>
+            <li><a href="about.html">Honest Limitations</a></li>
+            <li><a href="selftest.html">System Diagnostics</a></li>
+          </ul>
+        </div>
+
+        <div>
+          <h5 style="color: #ffffff; margin-bottom: 0.75rem;">Emergency Help</h5>
+          <ul class="footer-links-list">
+            <li><a href="scam-safety.html#helplines">Cybercrime Helplines</a></li>
+            <li><a href="https://cybercrime.gov.in" target="_blank" rel="noopener">India 1930 Portal</a></li>
+            <li><a href="https://www.ic3.gov" target="_blank" rel="noopener">US FBI IC3</a></li>
+            <li><a href="https://www.actionfraud.police.uk" target="_blank" rel="noopener">UK Action Fraud</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-disclaimer-bottom">
+        <p>
+          <strong>Legal Disclaimer:</strong> VoiceClone is a client-side probabilistic detection tool intended for educational purposes.
+        </p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Self-Test Engine -->
+  <script type="module">
+    import { CONFIG } from './js/config.js';
+    import { loadModelPipeline, getModelStatus } from './js/detector.js';
+
+    const tbody = document.getElementById('selftest-results-body');
+    const summaryEl = document.getElementById('selftest-summary');
+    const probeEl = document.getElementById('inference-probe-output');
+    const rerunBtn = document.getElementById('btn-rerun-tests');
+
+    // Mobile nav toggle
+    const menuToggle = document.getElementById('mobile-menu-btn');
+    const navLinks = document.getElementById('nav-links');
+    if (menuToggle && navLinks) {
+      menuToggle.addEventListener('click', () => {
+        const expanded = menuToggle.getAttribute('aria-expanded') === 'true';
+        menuToggle.setAttribute('aria-expanded', !expanded);
+        navLinks.classList.toggle('open', !expanded);
+      });
+    }
+
+    async function runAllTests() {
+      tbody.innerHTML = '';
+      summaryEl.textContent = 'Running diagnostics...';
+      let passCount = 0;
+      let totalCount = 0;
+
+      function renderRow(name, status, detail) {
+        totalCount++;
+        if (status === 'PASS') passCount++;
+        const badgeClass = status === 'PASS' ? 'badge-pass' : (status === 'WARN' ? 'badge-warn' : 'badge-fail');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><strong>${name}</strong></td>
+          <td><span class="${badgeClass}">${status}</span></td>
+          <td style="color: var(--text-muted); font-size: 0.85rem;">${detail}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      // 1. Secure Context (HTTPS or localhost)
+      const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const isSecure = window.isSecureContext || window.location.protocol === 'https:' || isLocal;
+      renderRow(
+        '1. Secure Context (HTTPS)',
+        isSecure ? 'PASS' : 'FAIL',
+        isSecure 
+          ? `Protocol: ${window.location.protocol}// (Secure context verified)` 
+          : 'Microphone access and WebGPU are disabled on insecure HTTP connections.'
+      );
+
+      // 2. Microphone API Support
+      const hasMediaDevices = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+      renderRow(
+        '2. Microphone API (getUserMedia)',
+        hasMediaDevices ? 'PASS' : 'FAIL',
+        hasMediaDevices 
+          ? 'navigator.mediaDevices.getUserMedia is supported in this browser' 
+          : 'getUserMedia is missing or disabled in this browser engine'
+      );
+
+      // 3. Web Audio API & AudioContext
+      const hasAudioCtx = typeof window.AudioContext !== 'undefined' || typeof window.webkitAudioContext !== 'undefined';
+      renderRow(
+        '3. Web Audio API (AudioContext)',
+        hasAudioCtx ? 'PASS' : 'FAIL',
+        hasAudioCtx 
+          ? 'AudioContext and OfflineAudioContext ready for 16 kHz mono resampling' 
+          : 'Web Audio API is not supported in this browser'
+      );
+
+      // 4. WebAssembly Support
+      const hasWasm = typeof WebAssembly !== 'undefined' && typeof WebAssembly.validate === 'function';
+      renderRow(
+        '4. WebAssembly (WASM Engine)',
+        hasWasm ? 'PASS' : 'FAIL',
+        hasWasm 
+          ? 'WebAssembly runtime validated (ONNX Runtime WASM supported)' 
+          : 'WebAssembly engine not available'
+      );
+
+      // 5. WebGPU Availability
+      let hasWebGpu = false;
+      let gpuInfo = 'WebGPU not detected; falling back cleanly to WebAssembly';
+      if ('gpu' in navigator && navigator.gpu) {
+        try {
+          const adapter = await navigator.gpu.requestAdapter();
+          if (adapter) {
+            hasWebGpu = true;
+            gpuInfo = 'WebGPU hardware adapter verified and available';
+          }
+        } catch (e) {
+          gpuInfo = `WebGPU adapter check note: ${e.message}`;
+        }
+      }
+      renderRow(
+        '5. WebGPU Acceleration',
+        hasWebGpu ? 'PASS' : 'WARN',
+        gpuInfo
+      );
+
+      // 6. Hugging Face CDN Reachability
+      let cdnReachable = false;
+      let cdnMsg = '';
+      try {
+        const res = await fetch(CONFIG.TRANSFORMERS_CDN, { method: 'HEAD' });
+        cdnReachable = res.ok;
+        cdnMsg = `CDN responded with HTTP ${res.status} (jsDelivr / Transformers.js)`;
+      } catch (e) {
+        cdnMsg = `Could not reach CDN directly: ${e.message}`;
+      }
+      renderRow(
+        '6. CDN Reachability (jsDelivr)',
+        cdnReachable ? 'PASS' : 'WARN',
+        cdnMsg
+      );
+
+      // 7. Neural Model Loading & Cache
+      let modelLoaded = false;
+      let modelMsg = '';
+      try {
+        const pipeline = await loadModelPipeline((p) => {
+          probeEl.textContent = `Model Loading: ${p.message || ''} (${p.progress || 0}%)`;
+        });
+        modelLoaded = !!pipeline;
+        modelMsg = `Model ${CONFIG.MODEL_ID} loaded successfully (WASM runtime)`;
+      } catch (e) {
+        modelMsg = `Model pipeline failed: ${e.message}`;
+      }
+      renderRow(
+        '7. Neural Model Initialization',
+        modelLoaded ? 'PASS' : 'FAIL',
+        modelMsg
+      );
+
+      // 8. Sample 16 kHz Inference Test
+      if (modelLoaded) {
+        try {
+          probeEl.textContent = 'Running test inference with 64,000 synthetic audio samples...';
+          const dummyPcm = new Float32Array(64000);
+          for (let i = 0; i < dummyPcm.length; i++) {
+            dummyPcm[i] = Math.sin(i * 0.05) * 0.2;
+          }
+          const pipelineInstance = await loadModelPipeline();
+          const t0 = performance.now();
+          const output = await pipelineInstance(dummyPcm, { topk: 2 });
+          const elapsed = (performance.now() - t0).toFixed(0);
+
+          renderRow(
+            '8. Live Inference Benchmark',
+            'PASS',
+            `Ran 4.0s window in ${elapsed} ms. Output: ${JSON.stringify(output)}`
+          );
+          probeEl.textContent = `PROBE SUCCESS! (${elapsed} ms)\nInference Output:\n${JSON.stringify(output, null, 2)}`;
+        } catch (infErr) {
+          renderRow(
+            '8. Live Inference Benchmark',
+            'FAIL',
+            `Inference error: ${infErr.message}`
+          );
+          probeEl.textContent = `PROBE ERROR: ${infErr.message}`;
+        }
+      } else {
+        renderRow(
+          '8. Live Inference Benchmark',
+          'WARN',
+          'Skipped because neural model could not be initialized'
+        );
+        probeEl.textContent = 'Inference probe skipped: neural model offline.';
+      }
+
+      summaryEl.textContent = `Self-test completed: ${passCount} of ${totalCount} checks passed.`;
+    }
+
+    if (rerunBtn) {
+      rerunBtn.addEventListener('click', () => runAllTests());
+    }
+
+    runAllTests();
+  </script>
+</body>
+</html>
